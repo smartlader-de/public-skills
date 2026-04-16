@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Claude Code local config (contains machine-specific paths)
+.claude/
+
+# Clavix planning artifacts (local workflow state)
+.clavix/
+
+# Session memory (local runtime logs)
+.remember/
+
+# User credentials
+.env
+*.env

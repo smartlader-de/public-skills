@@ -1,0 +1,122 @@
+[
+    {
+      "id": 1,
+      "query": "reboot my OVH VPS at vps-abc123.vps.ovh.net",
+      "should_trigger": true,
+      "reason": "Direct OVH VPS operation with specific resource name"
+    },
+    {
+      "id": 2,
+      "query": "list all dedicated servers in my OVH account",
+      "should_trigger": true,
+      "reason": "OVH dedicated server listing — clear infra management intent"
+    },
+    {
+      "id": 3,
+      "query": "what domains do I have with OVHcloud?",
+      "should_trigger": true,
+      "reason": "Explicit OVHcloud mention + domain management intent"
+    },
+    {
+      "id": 4,
+      "query": "my OVH VPS is not responding, can you check it?",
+      "should_trigger": true,
+      "reason": "Troubleshooting OVH VPS — infrastructure context"
+    },
+    {
+      "id": 5,
+      "query": "add an A record to my OVH DNS zone for example.com pointing to 1.2.3.4",
+      "should_trigger": true,
+      "reason": "OVH DNS management with specific intent"
+    },
+    {
+      "id": 6,
+      "query": "delete the snapshot I took last week on my EU datacenter instance",
+      "should_trigger": true,
+      "reason": "EU datacenter = OVH trigger term; snapshot delete = destructive op"
+    },
+    {
+      "id": 7,
+      "query": "show me the IP addresses on my dedicated server ns123456.ip-1-2-3.eu",
+      "should_trigger": true,
+      "reason": ".eu OVH hostname pattern + dedicated server mention"
+    },
+    {
+      "id": 8,
+      "query": "set up OVH API credentials for this project",
+      "should_trigger": true,
+      "reason": "OVH API credential setup — core skill function"
+    },
+    {
+      "id": 9,
+      "query": "how much bandwidth does my OVH vps use this month",
+      "should_trigger": true,
+      "reason": "OVH VPS monitoring query — read-only infrastructure operation"
+    },
+    {
+      "id": 10,
+      "query": "install ubuntu on my ovh server",
+      "should_trigger": true,
+      "reason": "OVH server OS reinstall — destructive operation skill should handle with protocol"
+    },
+    {
+      "id": 11,
+      "query": "explain how OVH's pricing compares to AWS and GCP",
+      "should_trigger": false,
+      "reason": "Near-miss: OVH is mentioned but this is a pricing comparison question, not infrastructure management"
+    },
+    {
+      "id": 12,
+      "query": "what's the OVH API authentication formula and how does HMAC-SHA1 work?",
+      "should_trigger": false,
+      "reason": "Near-miss: OVH API mentioned but this is a docs/education question, not an infrastructure operation"
+    },
+    {
+      "id": 13,
+      "query": "set up my AWS VPC and add some EC2 instances",
+      "should_trigger": false,
+      "reason": "VPS/cloud infra operation but clearly for AWS, not OVH"
+    },
+    {
+      "id": 14,
+      "query": "help me configure a dedicated server for my game",
+      "should_trigger": false,
+      "reason": "Near-miss: dedicated server mentioned but no OVH context — could be any provider"
+    },
+    {
+      "id": 15,
+      "query": "list all DNS records for my domain",
+      "should_trigger": false,
+      "reason": "Near-miss: DNS management but no OVH indication — could be Cloudflare, Route53, etc."
+    },
+    {
+      "id": 16,
+      "query": "what VPS plans are cheapest for a Node.js app?",
+      "should_trigger": false,
+      "reason": "Near-miss: VPS mentioned but this is a general advice/comparison question, no OVH context"
+    },
+    {
+      "id": 17,
+      "query": "I need to update my .env file with new database credentials",
+      "should_trigger": false,
+      "reason": "Near-miss: .env mentioned but no OVH context — unrelated task"
+    },
+    {
+      "id": 18,
+      "query": "backup my application files to S3",
+      "should_trigger": false,
+      "reason": "Backup task but for AWS S3, not OVH Backup Services"
+    },
+    {
+      "id": 19,
+      "query": "what's an EU datacenter for GDPR compliance?",
+      "should_trigger": false,
+      "reason": "Near-miss: EU datacenter mentioned but this is a compliance information question, not OVH ops"
+    },
+    {
+      "id": 20,
+      "query": "can you help me manage my VPS through the ca endpoint",
+      "should_trigger": true,
+      "reason": "ca endpoint is a specific OVH trigger term; VPS management context makes this OVH"
+    }
+]
