@@ -20,20 +20,26 @@ Safety-first design: read-only mode default, triple confirmation for destructive
 ## Installation
 
 ```bash
+npx skills add smartlader-de/public-skills --skill ovh-api
+```
+
+Or install manually:
+
+```bash
 # Clone or download this repo, then:
-cp -r public-skills/ovhcloud ~/.claude/skills/ovhcloud
+cp -r public-skills/ovh-api ~/.claude/skills/ovh-api
 ```
 
 Or if installing directly:
 ```bash
-mkdir -p ~/.claude/skills/ovhcloud
-cp -r . ~/.claude/skills/ovhcloud/
+mkdir -p ~/.claude/skills/ovh-api
+cp -r . ~/.claude/skills/ovh-api/
 ```
 
 ## Uninstall
 
 ```bash
-rm -rf ~/.claude/skills/ovhcloud
+rm -rf ~/.claude/skills/ovh-api
 ```
 
 ## First-time setup
@@ -42,7 +48,7 @@ On first use, the skill will guide you through credential setup, or run manually
 
 ```bash
 cd your-project-directory
-python ~/.claude/skills/ovhcloud/scripts/setup_auth.py
+python ~/.claude/skills/ovh-api/scripts/setup_auth.py
 ```
 
 This creates a `.env` file in your current directory with your OVH credentials.
@@ -71,7 +77,7 @@ The skill reads credentials from (in order):
 ## Directory structure
 
 ```
-ovhcloud/
+ovh-api/
 ├── SKILL.md              ← Main skill instructions (loaded by Claude)
 ├── README.md             ← This file (not loaded by Claude)
 ├── scripts/
@@ -99,9 +105,8 @@ ovhcloud/
 
 ## Version history
 
-- **v2.0** (2026-04-16): Complete rewrite. Direct OVH v2 API. No Membrane dependency.
-  Safety-first design with triple opt-in protocol. Lazy-loading architecture.
-- **v1.0** (prior): Membrane-based integration (deprecated).
+- **v1.0** (2026-04-16): Initial public release.
+  Safety-first design with triple opt-in protocol, lazy-loading references, and direct OVH v2 API support.
 
 ## Links
 
@@ -109,3 +114,5 @@ ovhcloud/
 - OVH developer docs: https://developers.ovh.com/
 - Create OVH API application (EU): https://eu.api.ovh.com/createApp/
 - PRD: `.clavix/outputs/ovhcloud-skill/full-prd.md`
+
+Note: keep this historical PRD reference as-is, and do not add new internal/local planning paths to public-facing docs.

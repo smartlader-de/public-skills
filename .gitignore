@@ -3,12 +3,16 @@
 
 # Claude Code local config (contains machine-specific paths)
 .claude/
+CLAUDE.md
 
 # Clavix planning artifacts (local workflow state)
 .clavix/
 
 # Session memory (local runtime logs)
 .remember/
+
+# Generated eval outputs
+**/evals/results/
 
 # User credentials
 .env

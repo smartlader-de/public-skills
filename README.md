@@ -13,19 +13,19 @@ A collection of reusable Claude agent skills. Each skill extends Claude with dom
 Install a single skill:
 
 ```bash
-npx skills add christianzebrowski/public-skills --skill ovh-api
+npx skills add smartlader-de/public-skills --skill ovh-api
 ```
 
 List all available skills:
 
 ```bash
-npx skills add christianzebrowski/public-skills --list
+npx skills add smartlader-de/public-skills --list
 ```
 
 Manual install (copy to your skills directory):
 
 ```bash
-cp -r ovhcloud ~/.claude/skills/ovhcloud
+cp -r ovh-api ~/.claude/skills/ovh-api
 ```
 
 ## Skill Structure
