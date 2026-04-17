@@ -46,19 +46,24 @@ rm -rf ~/.claude/skills/leantime
 
 ## First-time setup
 
-Generate an API key in Leantime and create a `.env` file in your project directory:
+Run the interactive setup wizard — it will ask for your URL and API key,
+verify the connection, and write `.env` automatically:
 
 ```bash
 cd your-project-directory
-# Create .env with your credentials:
+python ~/.claude/skills/leantime/scripts/setup_credentials.py
+```
+
+Or create `.env` manually:
+
+```bash
 echo "LEANTIME_URL=https://your-leantime.example.com" >> .env
 echo "LEANTIME_API_KEY=your-api-key-here" >> .env
-# Verify the connection:
 python ~/.claude/skills/leantime/scripts/check_connection.py
 ```
 
-For full step-by-step instructions, see `references/setup.md` inside the skill,
-or ask Claude to walk you through it.
+For full step-by-step instructions including API key generation, see
+`references/setup.md` inside the skill.
 
 ## Credential sources
 
@@ -78,7 +83,8 @@ leantime/
 ├── SKILL.md                  ← Main skill instructions (loaded by Claude)
 ├── README.md                 ← This file (not loaded by Claude)
 ├── scripts/
-│   └── check_connection.py   ← Validate credentials + probe endpoint
+│   ├── check_connection.py   ← Validate credentials + probe endpoint
+│   └── setup_credentials.py  ← Interactive credential setup wizard
 ├── references/
 │   ├── setup.md              ← API key provisioning and .env creation guide
 │   ├── projects.md           ← Project RPC methods

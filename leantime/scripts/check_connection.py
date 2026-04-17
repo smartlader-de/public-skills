@@ -56,6 +56,7 @@ def load_credentials() -> tuple[str, str] | None:
             err(f"  {k}=<value>")
         err("")
         err("See references/setup.md for full provisioning instructions.")
+        err("Or run:  python scripts/setup_credentials.py  for an interactive setup wizard.")
         return None
 
     url = env["LEANTIME_URL"].rstrip("/")

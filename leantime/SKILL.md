@@ -57,7 +57,14 @@ LEANTIME_URL=https://your-leantime.example.com
 LEANTIME_API_KEY=<your-api-key>
 ```
 
-If the script fails, direct the user to `references/setup.md` for full provisioning steps.
+If the script fails with "Missing required variable(s)", run the interactive setup wizard:
+
+```bash
+python scripts/setup_credentials.py
+```
+
+This prompts for the URL and API key, verifies the connection, and writes `.env` automatically.
+For a manual walkthrough, direct the user to `references/setup.md`.
 
 ---
 
