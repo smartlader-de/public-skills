@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "skills": {
+    "generate-swagger-docs": {
+      "source": "qodex-ai/ai-agent-skills",
+      "sourceType": "github",
+      "computedHash": "7d2bc1cb4c97d4fc8bce461bf0cf93e4f69dd40fc18c845cbce3de16d1ccc0f3"
+    },
+    "openapi-spec-generation": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "a18234366d829a7c87ac8f419846da9fe010c3b52b78be2f28e2e2d101b77273"
+    },
+    "swagger-doc-creator": {
+      "source": "jeremylongshore/claude-code-plugins-plus-skills",
+      "sourceType": "github",
+      "computedHash": "42e4afdae607b84400cd1a9b75a229c0c391e3c3bedd2305e7179946c775beff"
+    }
+  }
+}
