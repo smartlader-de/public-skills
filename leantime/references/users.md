@@ -1,14 +1,18 @@
 # Leantime Users Reference
 
-JSON-RPC methods for listing and retrieving users.
+Live-tested against a real Leantime instance. All method names, param shapes,
+and response schemas are verified.
 
-**This reference is READ-ONLY in v1.** User creation, modification, and
-deletion are out of scope. If a user asks to create or modify a user account,
-refuse and explain that user management must be done directly in the Leantime
-admin interface.
+**This reference is READ-ONLY.** User creation, modification, and deletion
+are out of scope. Manage users directly in the Leantime admin interface.
 
-**JSON-RPC endpoint:** `POST $LEANTIME_URL/api/jsonrpc`
+**Endpoint:** `POST $LEANTIME_URL/api/jsonrpc`
 **Auth header:** `x-api-key: $LEANTIME_API_KEY`
+
+> **Security warning:** `getUser` returns sensitive fields including the
+> bcrypt password hash, active session token, and 2FA secret. Never log or
+> expose the full `getUser` response. Use `getAll` when you only need IDs
+> and names.
 
 ---
 
@@ -18,22 +22,62 @@ admin interface.
 curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
   -H "Content-Type: application/json" \
   -H "x-api-key: $LEANTIME_API_KEY" \
+  -H "User-Agent: Mozilla/5.0 (compatible; Leantime-Skill/1.0)" \
   -d '<BODY>'
 ```
 
 ---
 
-## Common User Fields
+## User Object Fields
+
+### From `getAll` (summary shape)
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `id` | string | User ID (used in ticket `editorId`, comment `userId`) |
-| `firstname` | string | First name |
-| `lastname` | string | Last name |
-| `username` | string | Login username (often email address) |
-| `role` | string | e.g. `"admin"`, `"editor"`, `"viewer"`, `"client"` |
-| `status` | string | `"1"` active, `"0"` inactive |
-| `profileId` | string | Profile / avatar reference |
+| `id` | int | User ID — use in ticket `editorId` |
+| `firstname` | string | |
+| `lastname` | string | |
+| `username` | string | Login email |
+| `role` | string | Role code (e.g. `"50"` = admin) |
+| `status` | string | `"A"` = active |
+| `profileId` | string | Avatar reference (`""` = none) |
+| `clientId` | int | `0` = internal user |
+| `clientName` | null | |
+| `jobTitle` | string | |
+| `jobLevel` | string | |
+| `department` | string | |
+| `modified` | string | `"YYYY-MM-DD HH:MM:SS"` |
+| `twoFAEnabled` | int | `1` = enabled |
+
+### Additional fields from `getUser` (detail shape — handle with care)
+
+| Field | Type | Sensitivity |
+|-------|------|-------------|
+| `password` | string | **bcrypt hash — never log or expose** |
+| `session` | string | **active session token — never log or expose** |
+| `twoFASecret` | string | **TOTP secret — never log or expose** |
+| `sessiontime` | string | Unix timestamp of session expiry |
+| `phone` | string | |
+| `lastlogin` | string | `"YYYY-MM-DD HH:MM:SS"` |
+| `expires` | null | Account expiry |
+| `wage` | float | |
+| `hours` | float | |
+| `description` | null | |
+| `notifications` | int | |
+| `settings` | string | PHP-serialized preferences string |
+| `createdOn` | string | `"YYYY-MM-DD HH:MM:SS"` |
+| `source` | null | |
+| `pwReset` | null | |
+| `pwResetExpiration` | null | |
+| `pwResetCount` | null | |
+| `forcePwReset` | null | |
+| `lastpwd_change` | null | |
+
+### Role Codes (observed)
+
+| Code | Meaning |
+|------|---------|
+| `"50"` | Administrator |
 
 ---
 
@@ -41,9 +85,7 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
 
 **Method:** `leantime.rpc.users.getAll`
 
-**Params:** `{}` (no parameters required)
-
-**Request body:**
+**Params:** `{}`
 
 ```json
 {
@@ -54,44 +96,8 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
 }
 ```
 
-**Sample curl:**
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.users.getAll","params":{}}'
-```
-
-**Success response shape:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": [
-    {
-      "id": "3",
-      "firstname": "Alice",
-      "lastname": "Smith",
-      "username": "alice@example.com",
-      "role": "admin",
-      "status": "1"
-    },
-    {
-      "id": "7",
-      "firstname": "Bob",
-      "lastname": "Jones",
-      "username": "bob@example.com",
-      "role": "editor",
-      "status": "1"
-    }
-  ]
-}
-```
-
-Use the `id` values here to look up or assign users in tickets (`editorId`)
-and comments (`userId`).
+**Returns:** Array of user summary objects. Use `id` values here when
+assigning tickets (`editorId`) or looking up authors.
 
 ---
 
@@ -99,46 +105,40 @@ and comments (`userId`).
 
 **Method:** `leantime.rpc.users.getUser`
 
-**Required params:**
-
-| Param | Type | Description |
-|-------|------|-------------|
-| `id` | string | The user ID |
-
-**Request body:**
+| Param | Type | Required |
+|-------|------|----------|
+| `id` | int | yes |
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
   "method": "leantime.rpc.users.getUser",
-  "params": { "id": "7" }
+  "params": { "id": 1 }
 }
 ```
 
-**Sample curl:**
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.users.getUser","params":{"id":"7"}}'
-```
-
-**Success response:** Single user object (same fields as list above).
+**Returns:** Full user object including sensitive fields. Extract only the
+fields you need (`firstname`, `lastname`, `username`, `role`, `status`).
 
 ---
 
 ## Out-of-Scope Reminder
 
-**User creation, modification, and deletion are out of scope in v1.**
+User creation, modification, and deletion are out of scope in v1.
 
-If the user asks to:
-- Create a new user account
-- Change a user's password, role, or email
-- Delete or deactivate a user
+If asked to create, update, or delete a user, respond:
+> "User management is out of scope for this skill. Please manage users
+> directly in your Leantime instance under **Settings → Users**."
 
-Respond: "User management is out of scope for this skill in v1. Please manage
-users directly in your Leantime instance under **Settings → Users**."
+Do not attempt to call `addUser`, `updateUser`, `deleteUser`, or any variant.
 
-Do not attempt to call any `addUser`, `updateUser`, or `deleteUser` methods.
+---
+
+## Rate Limiting
+
+Cloudflare enforces ~5 requests/minute. Exceeding it returns:
+```json
+{"error": "Too many requests per minute."}
+```
+This is NOT a JSON-RPC envelope. Add 2–4 second delays between calls.

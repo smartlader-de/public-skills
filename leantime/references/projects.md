@@ -101,7 +101,7 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
 |-------|------|----------|-------|
 | `values.name` | string | **yes** | Missing → `-32000 Undefined array key "name"` |
 | `values.details` | string | no | HTML allowed |
-| `values.clientId` | int | no | Links to a client record |
+| `values.clientId` | int | **yes** | Use `0` for no client — server accesses this key unconditionally (PHP bug) |
 | `values.type` | string | no | Default `"project"` |
 | `values.hourBudget` | string | no | |
 | `values.dollarBudget` | float | no | |

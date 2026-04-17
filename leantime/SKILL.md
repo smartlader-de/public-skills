@@ -14,7 +14,7 @@ description: |
 compatibility: Leantime v3.x via JSON-RPC 2.0 API, network access to the user's Leantime instance, no external runtime dependencies beyond Python 3.8+
 license: MIT
 metadata:
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Leantime Skill
