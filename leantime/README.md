@@ -67,12 +67,14 @@ For full step-by-step instructions including API key generation, see
 
 ## Credential sources
 
-The skill reads credentials from `.env` in the current working directory:
+Credentials are looked up in this priority order:
 
-```
-LEANTIME_URL=https://your-leantime.example.com
-LEANTIME_API_KEY=<your-api-key>
-```
+1. **Environment variables** — `LEANTIME_URL`, `LEANTIME_API_KEY`
+2. **`.env` in the current working directory** — project-specific override
+3. **`~/.config/leantime/.env`** — global user config (written by `setup_credentials.py`)
+
+The global config is the recommended approach — set up once, works across all projects.
+To override for a specific project, add a `.env` to that project's root directory.
 
 Generate your API key at: **Leantime → Company Settings → API**
 

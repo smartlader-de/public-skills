@@ -50,7 +50,13 @@ python scripts/check_connection.py
 # Exit 1: prints exactly what is missing or wrong, with remediation steps
 ```
 
-The script reads `.env` from the current working directory. Required variables:
+The script checks credentials in this priority order:
+
+1. Environment variables (`LEANTIME_URL`, `LEANTIME_API_KEY`)
+2. `.env` in the current working directory (project-specific override)
+3. `~/.config/leantime/.env` (global user config — written by `setup_credentials.py`)
+
+Required variables:
 
 ```
 LEANTIME_URL=https://your-leantime.example.com

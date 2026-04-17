@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Interactive Leantime credential setup — writes LEANTIME_URL and LEANTIME_API_KEY to .env."""
+"""Interactive Leantime credential setup — writes LEANTIME_URL and LEANTIME_API_KEY to ~/.config/leantime/.env."""
 
 import getpass
 import json
-import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -11,6 +10,8 @@ from pathlib import Path
 
 PROBE_METHOD = "leantime.rpc.users.getAll"
 PROBE_TIMEOUT = 10
+CONFIG_DIR = Path.home() / ".config" / "leantime"
+CONFIG_FILE = CONFIG_DIR / ".env"
 
 
 def ask(prompt: str, default: str = "") -> str:
@@ -54,17 +55,13 @@ def probe(url: str, key: str) -> tuple[bool, str]:
         if e.code in (401, 403):
             return False, f"HTTP {e.code}: API key rejected — check Company Settings → API"
         if e.code == 404:
-            return False, f"HTTP 404: /api/jsonrpc not found — is LEANTIME_URL pointing to the Leantime root?"
+            return False, "HTTP 404: /api/jsonrpc not found — is LEANTIME_URL pointing to the Leantime root?"
         return False, f"HTTP {e.code} from {endpoint}"
     except urllib.error.URLError as e:
         return False, f"Cannot reach {url}: {e.reason}"
     except Exception as e:
         return False, str(e)
 
-    body = data
-    if isinstance(body, str):
-        if body.lstrip().startswith("<"):
-            return False, "Got HTML instead of JSON — URL may point to a login page or proxy"
     if "error" in data:
         msg = data["error"].get("message", "unknown error")
         return False, f"JSON-RPC error: {msg}"
@@ -73,44 +70,45 @@ def probe(url: str, key: str) -> tuple[bool, str]:
     return True, f"Connected — {count} users visible"
 
 
-def write_env(url: str, key: str) -> Path:
-    env_path = Path.cwd() / ".env"
+def write_config(url: str, key: str) -> Path:
+    """Write credentials to ~/.config/leantime/.env, merging with any existing content."""
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
-    if env_path.exists():
-        existing = env_path.read_text()
-        # Check if our keys already exist
+    if CONFIG_FILE.exists():
+        existing = CONFIG_FILE.read_text()
         has_url = "LEANTIME_URL=" in existing
         has_key = "LEANTIME_API_KEY=" in existing
 
         if has_url or has_key:
-            print(f"\n.env already exists at {env_path}")
-            choice = ask("Overwrite existing Leantime entries? (yes/no)", "no").lower()
+            print(f"\nCredentials already exist at {CONFIG_FILE}")
+            choice = ask("Overwrite existing entries? (yes/no)", "no").lower()
             if choice not in ("yes", "y"):
-                print("Skipped. Credentials NOT saved.")
+                print("Skipped. Credentials NOT updated.")
                 print(f"  LEANTIME_URL={url}")
                 print("  LEANTIME_API_KEY=<hidden>")
-                return env_path
+                return CONFIG_FILE
 
-            # Remove existing LEANTIME_* lines and rewrite
+            # Replace existing LEANTIME_* lines
             lines = [l for l in existing.splitlines() if not l.startswith("LEANTIME_")]
             lines += [f"LEANTIME_URL={url}", f"LEANTIME_API_KEY={key}"]
-            env_path.write_text("\n".join(lines) + "\n")
+            CONFIG_FILE.write_text("\n".join(lines) + "\n")
         else:
-            # Append to existing .env
-            with env_path.open("a") as f:
+            with CONFIG_FILE.open("a") as f:
                 f.write(f"\nLEANTIME_URL={url}\nLEANTIME_API_KEY={key}\n")
     else:
-        env_path.write_text(f"LEANTIME_URL={url}\nLEANTIME_API_KEY={key}\n")
+        CONFIG_FILE.write_text(f"LEANTIME_URL={url}\nLEANTIME_API_KEY={key}\n")
 
-    return env_path
+    # Restrict permissions so only the owner can read the key
+    CONFIG_FILE.chmod(0o600)
+    return CONFIG_FILE
 
 
 def main() -> int:
     print("=" * 56)
     print("  Leantime Credential Setup")
     print("=" * 56)
-    print("\nThis writes LEANTIME_URL and LEANTIME_API_KEY to .env")
-    print(f"in the current directory: {Path.cwd()}\n")
+    print(f"\nCredentials will be saved to: {CONFIG_FILE}")
+    print("(Shared across all projects — set up once)\n")
     print("You will need an API key from:")
     print("  Leantime → Company Settings → API\n")
 
@@ -154,16 +152,19 @@ def main() -> int:
     else:
         print(f"✓ {msg}")
 
-    # ── Step 4: Write .env ────────────────────────────────────
-    print("\n── Step 4: Saving to .env ──")
-    env_path = write_env(url, key)
-    print(f"Saved to {env_path}")
+    # ── Step 4: Write config ──────────────────────────────────
+    print("\n── Step 4: Saving credentials ──")
+    saved_path = write_config(url, key)
+    print(f"Saved to {saved_path}  (permissions: 600)")
 
     # ── Done ──────────────────────────────────────────────────
     print("\n" + "=" * 56)
     print("  Setup complete!")
     print("=" * 56)
-    print("\nNext step: run  python scripts/check_connection.py  to confirm.")
+    print("\nCredentials are now available to all projects.")
+    print("Next step: run  python scripts/check_connection.py  to confirm.")
+    print("\nTo override for a specific project, create a .env in that")
+    print("project directory — it takes priority over the global config.")
     return 0
 
 

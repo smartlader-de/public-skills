@@ -1,22 +1,53 @@
 # Leantime Projects Reference
 
-JSON-RPC methods for listing, retrieving, and creating projects.
+Live-tested against a real Leantime instance. All method names, param shapes,
+and response schemas are verified — not guessed.
 
-**JSON-RPC endpoint:** `POST $LEANTIME_URL/api/jsonrpc`
+**Endpoint:** `POST $LEANTIME_URL/api/jsonrpc`
 **Auth header:** `x-api-key: $LEANTIME_API_KEY`
+**User-Agent:** Must not be the default Python/urllib UA — Cloudflare blocks it.
+
+> **Critical param shape:** `addProject` and `patch` wrap their data inside
+> a `values` or `params` key respectively — NOT as flat top-level params.
+> Get this wrong and you get `-32602 Invalid params`.
 
 ---
 
 ## Canonical Request Template
 
-All examples below use this envelope:
-
 ```bash
 curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
   -H "Content-Type: application/json" \
   -H "x-api-key: $LEANTIME_API_KEY" \
+  -H "User-Agent: Mozilla/5.0 (compatible; Leantime-Skill/1.0)" \
   -d '<BODY>'
 ```
+
+---
+
+## Project Object Fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | int | Project ID |
+| `name` | string | Project name |
+| `details` | string | Description (may contain HTML) |
+| `clientId` | int\|null | Client ID (`null` = no client) |
+| `clientName` | string\|null | Client name (denormalized) |
+| `state` | null | Reserved, always null |
+| `hourBudget` | string | e.g. `"0"` |
+| `dollarBudget` | float | e.g. `0` |
+| `menuType` | string | `""` or `"default"` |
+| `type` | string | Always `"project"` |
+| `parent` | int\|null | Parent project ID (`0` = none) |
+| `parentId` | null | Deprecated alias |
+| `parentName` | null | Deprecated alias |
+| `modified` | string | `"YYYY-MM-DD HH:MM:SS"` |
+| `start` | null | Rarely populated |
+| `end` | null | Rarely populated |
+| `isFavorite` | int | `1` favorited, `0` not |
+
+`getProject` additionally returns: `psettings`, `avatar`, `cover`
 
 ---
 
@@ -24,9 +55,7 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
 
 **Method:** `leantime.rpc.projects.getAll`
 
-**Params:** `{}` (no parameters required)
-
-**Request body:**
+**Params:** `{}`
 
 ```json
 {
@@ -37,38 +66,7 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
 }
 ```
 
-**Sample curl:**
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.projects.getAll","params":{}}'
-```
-
-**Success response shape:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": [
-    {
-      "id": "42",
-      "name": "Website Redesign",
-      "description": "Redesign the company website",
-      "status": "active",
-      "clientId": "5",
-      "ownerId": "3",
-      "startDate": "2026-01-01",
-      "endDate": "2026-06-30"
-    }
-  ]
-}
-```
-
-Key response fields: `id`, `name`, `description`, `status`, `clientId`,
-`ownerId`, `startDate`, `endDate`.
+**Returns:** Array of project objects.
 
 ---
 
@@ -76,33 +74,20 @@ Key response fields: `id`, `name`, `description`, `status`, `clientId`,
 
 **Method:** `leantime.rpc.projects.getProject`
 
-**Required params:**
-
-| Param | Type | Description |
-|-------|------|-------------|
-| `id` | string or int | The project ID |
-
-**Request body:**
+| Param | Type | Required |
+|-------|------|----------|
+| `id` | int | yes |
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
   "method": "leantime.rpc.projects.getProject",
-  "params": { "id": "42" }
+  "params": { "id": 2 }
 }
 ```
 
-**Sample curl:**
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.projects.getProject","params":{"id":"42"}}'
-```
-
-**Success response shape:** Single project object (same fields as list above).
+**Returns:** Single project object with extended fields (`psettings`, `avatar`, `cover`).
 
 ---
 
@@ -110,24 +95,16 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
 
 **Method:** `leantime.rpc.projects.addProject`
 
-**Required params:**
+> All project data goes inside a `values` object — not flat.
 
-| Param | Type | Description |
-|-------|------|-------------|
-| `name` | string | Project name |
-
-**Optional params:**
-
-| Param | Type | Description |
-|-------|------|-------------|
-| `description` | string | Project description |
-| `clientId` | string | Client/organisation ID |
-| `ownerId` | string | User ID of project owner |
-| `startDate` | string | `YYYY-MM-DD` format |
-| `endDate` | string | `YYYY-MM-DD` format |
-| `status` | string | e.g. `"active"`, `"inactive"` |
-
-**Request body:**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `values.name` | string | **yes** | Missing → `-32000 Undefined array key "name"` |
+| `values.details` | string | no | HTML allowed |
+| `values.clientId` | int | no | Links to a client record |
+| `values.type` | string | no | Default `"project"` |
+| `values.hourBudget` | string | no | |
+| `values.dollarBudget` | float | no | |
 
 ```json
 {
@@ -135,36 +112,73 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
   "id": 1,
   "method": "leantime.rpc.projects.addProject",
   "params": {
-    "name": "Q3 Marketing Campaign",
-    "description": "All tasks for the Q3 campaign",
-    "startDate": "2026-07-01",
-    "endDate": "2026-09-30"
+    "values": {
+      "name": "Q3 Marketing Campaign",
+      "details": "All tasks for the Q3 campaign",
+      "clientId": 1
+    }
   }
 }
 ```
 
-**Sample curl:**
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.projects.addProject","params":{"name":"Q3 Marketing Campaign","description":"All tasks for the Q3 campaign"}}'
-```
-
-**Success response:** Returns the new project `id` or the full project object.
+**Returns:** `[newProjectId]` — array containing the new integer ID.
 
 ---
 
-## Discovering Method Names
+## 4. Patch Project (Partial Update)
 
-If any documented method above returns a JSON-RPC error `-32601` (Method not
-found), the method name may differ in your Leantime version. To investigate:
+**Method:** `leantime.rpc.projects.patch`
 
-1. Check the Leantime source at `app/Domain/Projects/Repositories/` and
-   `app/Domain/Projects/Services/` for the RPC class names
-2. Try variant method names: `leantime.rpc.project.*` (singular)
-3. Use `leantime.rpc.projects.getProjectsAssignedToUser` if `getAll` is
-   restricted to admins in your version
+> `id` is top-level; fields to change go inside `params`.
 
-Always prefer the version that returns results rather than an error.
+| Param | Location | Required |
+|-------|----------|----------|
+| `id` | top-level | **yes** |
+| fields to change | `params.*` | at least one |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "leantime.rpc.projects.patch",
+  "params": {
+    "id": 2,
+    "params": {
+      "name": "Renamed Project",
+      "details": "Updated description"
+    }
+  }
+}
+```
+
+**Returns:** `[true]` on success.
+
+**Errors:**
+- Missing `id` → `-32602 Required Parameter Missing: id`
+- Missing `params` → `-32602 Required Parameter Missing: params`
+
+---
+
+## Methods That Do NOT Exist
+
+These return `-32601 Method not found` — do not call them:
+
+| Method | Status |
+|--------|--------|
+| `getMyProjects` | not found |
+| `getUsersProjects` | not found |
+| `updateProject` | not found |
+| `deleteProject` | not found |
+
+Use `patch` for all updates. There is no delete operation.
+
+---
+
+## Rate Limiting
+
+Cloudflare enforces ~5 requests/minute. Exceeding it returns:
+```json
+{"error": "Too many requests per minute."}
+```
+This is NOT a JSON-RPC envelope — check for it separately. Add 2–4 second
+delays between calls in scripts.

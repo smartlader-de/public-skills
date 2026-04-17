@@ -27,21 +27,35 @@ On the API settings page, click **Generate API Key** (or **Create New Key**).
 Leantime will display the key once. Copy it immediately — it will not be shown
 again in full.
 
-## Step 4: Create a `.env` file
+## Step 4: Save credentials
 
-In the root of the project directory where you run Claude, create a file named
-`.env` with the following content:
+**Recommended — run the interactive setup wizard (writes to `~/.config/leantime/.env`):**
 
+```bash
+python scripts/setup_credentials.py
 ```
+
+This stores credentials globally so every project can use the skill without
+per-project setup. The file is created with permissions `600` (owner read/write only).
+
+**Or — create the file manually:**
+
+```bash
+mkdir -p ~/.config/leantime
+cat > ~/.config/leantime/.env <<EOF
 LEANTIME_URL=https://your-leantime.example.com
 LEANTIME_API_KEY=paste-your-key-here
+EOF
+chmod 600 ~/.config/leantime/.env
 ```
 
+**Project-specific override:** If you need different credentials for a specific
+project, create a `.env` in that project's root directory — it takes priority
+over the global config.
+
 **Notes:**
-- `LEANTIME_URL` must be the base URL of your instance with no trailing slash
-- Do not wrap values in quotes (the probe script strips them, but bare values
-  are safer)
-- Do not commit `.env` to version control — add it to `.gitignore`
+- `LEANTIME_URL` must be the base URL with no trailing slash
+- Do not commit credential files to version control — add them to `.gitignore`
 
 ## Step 5: Run the connectivity probe
 

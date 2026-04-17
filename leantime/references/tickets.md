@@ -1,10 +1,14 @@
 # Leantime Tickets Reference
 
-JSON-RPC methods for listing, retrieving, creating, and updating tickets
-(also called "to-dos" or "tasks" in Leantime's UI).
+Live-tested against a real Leantime instance. All method names, param shapes,
+and response schemas are verified.
 
-**JSON-RPC endpoint:** `POST $LEANTIME_URL/api/jsonrpc`
+**Endpoint:** `POST $LEANTIME_URL/api/jsonrpc`
 **Auth header:** `x-api-key: $LEANTIME_API_KEY`
+
+> **Critical param shape:** `addTicket` and `updateTicket` wrap all ticket
+> data inside a `values` object. `patch` uses `id` + `params`. Flat params
+> do not work.
 
 ---
 
@@ -14,27 +18,82 @@ JSON-RPC methods for listing, retrieving, creating, and updating tickets
 curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
   -H "Content-Type: application/json" \
   -H "x-api-key: $LEANTIME_API_KEY" \
+  -H "User-Agent: Mozilla/5.0 (compatible; Leantime-Skill/1.0)" \
   -d '<BODY>'
 ```
 
 ---
 
-## Common Ticket Fields
+## Ticket Object Fields
+
+### From `getAll` (summary shape)
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `id` | string | Ticket ID (read) |
-| `headline` | string | Ticket title / summary |
-| `description` | string | Full description (may contain HTML) |
-| `projectId` | string | Parent project ID |
-| `editorId` | string | Assigned user ID |
-| `status` | string/int | e.g. `"0"` open, `"1"` done (varies by Leantime version) |
-| `priority` | string | `"1"` low, `"2"` medium, `"3"` high |
-| `type` | string | e.g. `"story"`, `"bug"`, `"task"`, `"subtask"` |
-| `dateToFinish` | string | Due date `YYYY-MM-DD HH:MM:SS` |
-| `tags` | string | Comma-separated tag string |
-| `storypoints` | string/int | Story point estimate |
-| `milestoneid` | string | Associated milestone ID |
+| `id` | int | Ticket ID |
+| `headline` | string | Title |
+| `description` | string | Body (may contain HTML) |
+| `type` | string | `"task"`, `"story"`, `"bug"`, `"subtask"`, `"milestone"` |
+| `projectId` | int | Parent project |
+| `projectName` | string | Denormalized project name |
+| `clientId` | int\|null | |
+| `clientName` | string\|null | |
+| `status` | int | See status table below |
+| `statusLabel` | string | e.g. `"New"` (present on some records) |
+| `priority` | string | `""` unset, `"1"` low, `"2"` medium, `"3"` high |
+| `editorId` | string | Assigned user ID (`""` = unassigned) |
+| `editorFirstname` | string\|null | |
+| `editorLastname` | string\|null | |
+| `authorId` | int\|null | Creator user ID |
+| `authorFirstname` | string\|null | |
+| `authorLastname` | string\|null | |
+| `milestoneid` | int | `0` = no milestone |
+| `milestoneHeadline` | string\|null | |
+| `milestoneColor` | string | e.g. `"var(--grey)"` or `"#124F7D"` |
+| `sprint` | int | Sprint ID (`0` = no sprint) |
+| `sprintName` | null | Usually null |
+| `storypoints` | int | |
+| `planHours` | float | |
+| `hourRemaining` | float | |
+| `bookedHours` | string | e.g. `"0.00"` |
+| `date` | string | Created at `"YYYY-MM-DD HH:MM:SS"` |
+| `dateToFinish` | string | Due date; `"0000-00-00 00:00:00"` = none |
+| `editFrom` | string | `"0000-00-00 00:00:00"` = none |
+| `editTo` | string | `"0000-00-00 00:00:00"` = none |
+| `tags` | string | CSS color or tag text (e.g. `"#124F7D"`) |
+| `dependingTicketId` | int | `0` = none |
+| `parentHeadline` | null | Parent ticket title (subtasks) |
+| `sortindex` | int\|null | |
+| `commentCount` | int | |
+| `fileCount` | int | |
+| `subtaskCount` | int | |
+
+### Additional fields from `getTicket` (detail shape)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `projectDescription` | string | |
+| `userId` | int | API key's user ID |
+| `acceptanceCriteria` | string | |
+| `url` | null | External URL |
+| `timelineDate` | null | |
+| `timelineDateToFinish` | null | |
+| `timeToFinish` | null | |
+| `timeFrom` | null | |
+| `timeTo` | null | |
+| `doneTickets` | null | Subtask progress |
+| `allTickets` | null | Subtask total |
+| `percentDone` | null | |
+| `children` | null | Subtask array |
+| `collaborators` | array | Usually `[]` |
+| `modified` | null | |
+
+### Status Values (observed)
+
+| Value | Meaning |
+|-------|---------|
+| `0` | Open / To Do |
+| `3` | New (shown with `statusLabel: "New"`) |
 
 ---
 
@@ -42,64 +101,20 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
 
 **Method:** `leantime.rpc.tickets.getAll`
 
-**Optional params:**
-
-| Param | Type | Description |
-|-------|------|-------------|
-| `projectId` | string | Filter to a specific project (omit for all tickets) |
-
-**Request body (all tickets):**
+| Param | Type | Required | Notes |
+|-------|------|----------|-------|
+| `projectId` | int | no | Filter to a specific project |
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
   "method": "leantime.rpc.tickets.getAll",
-  "params": {}
+  "params": { "projectId": 2 }
 }
 ```
 
-**Request body (filtered to project 42):**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "leantime.rpc.tickets.getAll",
-  "params": { "projectId": "42" }
-}
-```
-
-**Sample curl:**
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.tickets.getAll","params":{"projectId":"42"}}'
-```
-
-**Success response shape:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": [
-    {
-      "id": "101",
-      "headline": "Fix login page bug",
-      "description": "Users can't log in with SSO",
-      "projectId": "42",
-      "editorId": "7",
-      "status": "0",
-      "priority": "3",
-      "type": "bug",
-      "dateToFinish": "2026-05-01 00:00:00"
-    }
-  ]
-}
-```
+**Returns:** Array of ticket summary objects. Omit `projectId` to get all tickets across all projects.
 
 ---
 
@@ -107,33 +122,20 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
 
 **Method:** `leantime.rpc.tickets.getTicket`
 
-**Required params:**
-
-| Param | Type | Description |
-|-------|------|-------------|
-| `id` | string | Ticket ID |
-
-**Request body:**
+| Param | Type | Required |
+|-------|------|----------|
+| `id` | int | yes |
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
   "method": "leantime.rpc.tickets.getTicket",
-  "params": { "id": "101" }
+  "params": { "id": 11 }
 }
 ```
 
-**Sample curl:**
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.tickets.getTicket","params":{"id":"101"}}'
-```
-
-**Success response:** Single ticket object (same fields as list above).
+**Returns:** Single ticket object with extended fields.
 
 ---
 
@@ -141,17 +143,23 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
 
 **Method:** `leantime.rpc.tickets.addTicket`
 
-**Required params:**
+> All ticket data goes inside `values`. Flat params return `-32602`.
 
-| Param | Type | Description |
-|-------|------|-------------|
-| `headline` | string | Ticket title |
-| `projectId` | string | Parent project ID |
-
-**Optional params:** `description`, `editorId`, `status`, `priority`, `type`,
-`dateToFinish`, `tags`, `storypoints`, `milestoneid`
-
-**Request body:**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `values.headline` | string | **yes** | |
+| `values.projectId` | int | **yes** | |
+| `values.description` | string | no | HTML allowed |
+| `values.type` | string | no | `"task"`, `"story"`, `"bug"`, `"subtask"` |
+| `values.priority` | string | no | `"1"` / `"2"` / `"3"` |
+| `values.status` | int | no | Default `0` |
+| `values.editorId` | int | no | Assigned user ID |
+| `values.milestoneid` | int | no | |
+| `values.sprint` | int | no | |
+| `values.storypoints` | int | no | |
+| `values.dateToFinish` | string | no | `"YYYY-MM-DD HH:MM:SS"` |
+| `values.tags` | string | no | |
+| `values.acceptanceCriteria` | string | no | |
 
 ```json
 {
@@ -159,47 +167,67 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
   "id": 1,
   "method": "leantime.rpc.tickets.addTicket",
   "params": {
-    "headline": "Implement dark mode",
-    "description": "Add a dark mode toggle to user settings",
-    "projectId": "42",
-    "priority": "2",
-    "type": "story",
-    "dateToFinish": "2026-06-15 00:00:00"
+    "values": {
+      "headline": "Fix login page bug",
+      "description": "Safari iOS 17 — form submit does nothing",
+      "projectId": 2,
+      "type": "bug",
+      "priority": "3"
+    }
   }
 }
 ```
 
-**Sample curl:**
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.tickets.addTicket","params":{"headline":"Implement dark mode","projectId":"42","priority":"2","type":"story"}}'
-```
-
-**Success response:** Returns the new ticket `id` or full ticket object.
+**Returns:** `[newTicketId]` — array containing the new integer ID.
 
 ---
 
-## 4. Update Ticket
+## 4. Patch Ticket (Partial Update — Preferred)
+
+**Method:** `leantime.rpc.tickets.patch`
+
+> `id` is top-level; fields to change go inside `params`.
+
+| Param | Location | Required |
+|-------|----------|----------|
+| `id` | top-level | **yes** |
+| fields to change | `params.*` | at least one |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "leantime.rpc.tickets.patch",
+  "params": {
+    "id": 11,
+    "params": {
+      "status": 3,
+      "headline": "Updated title"
+    }
+  }
+}
+```
+
+**Returns:** `[true]` on success.
+
+**Errors:**
+- Missing `id` → `-32602 Required Parameter Missing: id`
+- Missing `params` → `-32602 Required Parameter Missing: params`
+
+---
+
+## 5. Update Ticket (Full Update)
 
 **Method:** `leantime.rpc.tickets.updateTicket`
 
-**Required params:**
+> Requires both `id` and `projectId` inside `values`. Prefer `patch` for
+> partial updates — `updateTicket` is strict about required fields.
 
-| Param | Type | Description |
-|-------|------|-------------|
-| `id` | string | Ticket ID to update |
-
-**Optional params:** Any ticket field you want to change.
-
-> **Important:** Leantime performs partial updates — send only the fields you
-> want to change. Omitting a field does NOT clear it. However, some Leantime
-> versions may reset fields if `headline` or `projectId` is omitted; when in
-> doubt, include them.
-
-**Request body (move ticket 101 to Done):**
+| Field | Type | Required |
+|-------|------|----------|
+| `values.id` | int | **yes** |
+| `values.projectId` | int | **yes** |
+| other fields | any | no |
 
 ```json
 {
@@ -207,71 +235,35 @@ curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
   "id": 1,
   "method": "leantime.rpc.tickets.updateTicket",
   "params": {
-    "id": "101",
-    "status": "1"
+    "values": {
+      "id": 11,
+      "projectId": 2,
+      "status": 3,
+      "headline": "Updated title"
+    }
   }
 }
 ```
 
-**Sample curl:**
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.tickets.updateTicket","params":{"id":"101","status":"1"}}'
-```
-
-**Success response:** Returns `true`, `1`, or the updated ticket object.
+**Returns:** `{"msg": "...", "type": "error"|"success"}` — always check `type`.
+Missing `projectId` → `{"msg": "project id is not set", "type": "error"}`.
 
 ---
 
-## Worked Examples
+## Methods That Do NOT Exist
 
-### Create a bug ticket in project 42
+| Method | Status |
+|--------|--------|
+| `deleteTicket` | not found |
 
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "leantime.rpc.tickets.addTicket",
-    "params": {
-      "headline": "Login page broken on mobile",
-      "description": "Safari iOS 17 — form submit does nothing",
-      "projectId": "42",
-      "type": "bug",
-      "priority": "3"
-    }
-  }'
-```
-
-### Move ticket 42 to Done
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.tickets.updateTicket","params":{"id":"42","status":"1"}}'
-```
-
-### List open tickets assigned to user 7
-
-```bash
-curl -s -X POST "$LEANTIME_URL/api/jsonrpc" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $LEANTIME_API_KEY" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"leantime.rpc.tickets.getAll","params":{"editorId":"7","status":"0"}}'
-```
+There is no delete operation via the API.
 
 ---
 
-## Discovering Method Names
+## Rate Limiting
 
-If documented methods return error `-32601` (Method not found), the RPC name
-may differ in your Leantime version. Check:
-`app/Domain/Tickets/Repositories/` and `app/Domain/Tickets/Services/`
-for the registered RPC class. Variants: `leantime.rpc.ticket.*` (singular),
-`leantime.rpc.todos.*`.
+Cloudflare enforces ~5 requests/minute. Exceeding it returns:
+```json
+{"error": "Too many requests per minute."}
+```
+This is NOT a JSON-RPC envelope. Add 2–4 second delays between calls.
