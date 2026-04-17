@@ -1,0 +1,104 @@
+[
+  {
+    "id": 1,
+    "query": "show my Leantime projects",
+    "should_trigger": true,
+    "reason": "Direct Leantime mention + project listing intent"
+  },
+  {
+    "id": 2,
+    "query": "create a ticket in Leantime for the login bug",
+    "should_trigger": true,
+    "reason": "Explicit Leantime mention + ticket creation intent"
+  },
+  {
+    "id": 3,
+    "query": "what's the status of ticket 42 in our Leantime?",
+    "should_trigger": true,
+    "reason": "Direct Leantime mention + ticket status lookup"
+  },
+  {
+    "id": 4,
+    "query": "add a comment to my Leantime task saying the PR is merged",
+    "should_trigger": true,
+    "reason": "Leantime mention + comment operation"
+  },
+  {
+    "id": 5,
+    "query": "list users in our Leantime workspace",
+    "should_trigger": true,
+    "reason": "Leantime mention + user listing intent"
+  },
+  {
+    "id": 6,
+    "query": "show my kanban board tickets",
+    "should_trigger": true,
+    "reason": "Kanban is a Leantime-specific trigger term in self-hosted PM context"
+  },
+  {
+    "id": 7,
+    "query": "I use a self-hosted PM tool called Leantime — can you list my open tasks?",
+    "should_trigger": true,
+    "reason": "Explicit Leantime name + self-hosted PM context + task listing"
+  },
+  {
+    "id": 8,
+    "query": "update the priority of my Leantime ticket to high",
+    "should_trigger": true,
+    "reason": "Leantime mention + ticket update intent"
+  },
+  {
+    "id": 9,
+    "query": "create a new project in Leantime for the mobile app",
+    "should_trigger": true,
+    "reason": "Direct Leantime mention + project creation intent"
+  },
+  {
+    "id": 10,
+    "query": "how many open tickets are in my Leantime project?",
+    "should_trigger": true,
+    "reason": "Leantime mention + ticket count/list intent"
+  },
+  {
+    "id": 11,
+    "query": "create a Jira ticket for this bug",
+    "should_trigger": false,
+    "reason": "Ticket creation but for Jira, not Leantime"
+  },
+  {
+    "id": 12,
+    "query": "open a GitHub issue for this feature request",
+    "should_trigger": false,
+    "reason": "Issue creation but for GitHub, not Leantime"
+  },
+  {
+    "id": 13,
+    "query": "add a task to my Linear backlog",
+    "should_trigger": false,
+    "reason": "Task creation but for Linear, not Leantime"
+  },
+  {
+    "id": 14,
+    "query": "what project management tools do you support?",
+    "should_trigger": false,
+    "reason": "General PM question — no specific Leantime operation requested"
+  },
+  {
+    "id": 15,
+    "query": "show me all open tasks in our project management system",
+    "should_trigger": false,
+    "reason": "Near-miss: task listing intent but no Leantime mention — could be any PM tool"
+  },
+  {
+    "id": 16,
+    "query": "log 3 hours on my ticket in the time tracker",
+    "should_trigger": false,
+    "reason": "Near-miss: ticket context but no Leantime mention; time tracking is also out of scope v1"
+  },
+  {
+    "id": 17,
+    "query": "what kanban boards does Trello support?",
+    "should_trigger": false,
+    "reason": "Kanban mentioned but explicitly about Trello, not Leantime"
+  }
+]

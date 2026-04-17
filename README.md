@@ -6,6 +6,7 @@ A collection of reusable Claude agent skills. Each skill extends Claude with dom
 
 | Skill | Description | Requirements |
 |-------|-------------|--------------|
+| [leantime](./leantime/) | Manage Leantime projects, tickets, users, and comments via the JSON-RPC 2.0 API. | Leantime v3.x instance + API key |
 | [ovh-api](./ovh-api/) | Manage OVH Cloud infrastructure (VPS, Dedicated, Public Cloud, DNS, Networking, Backup, Hosting, Licenses, Support) via the OVH v2 REST API. Safety-first: read-only mode default, triple confirmation for destructive ops. | Python 3.8+, OVH account |
 
 ## Installation
