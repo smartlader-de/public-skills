@@ -1,4 +1,4 @@
-name: one-password-mcp-secrets
+name: 1password-environment-manager
 description: >
   Manage project environment variables through 1Password Environments.
   MCP-first: prefers the 1Password MCP server for operations that do not
@@ -16,17 +16,21 @@ instructions: |
   3. Detect whether the 1Password MCP server is available.
   4. If MCP is missing, recommend setup before any CLI fallback.
   5. Determine source, destination, provider, and context.
-  6. Run a metadata-only comparison first: names, contexts, status only.
-  7. Ask for explicit confirmation before production writes, overwrites, deletes, raw value access, or MCP configuration.
-  8. Execute the workflow.
-  9. Verify by names and contexts only.
-  10. Summarize without secrets.
+  6. After MCP authentication, load the account binding rules and check
+     .1password/environments.json before any Environment write.
+  7. Run a metadata-only comparison first: names, contexts, status only.
+  8. Ask for explicit confirmation before production writes, overwrites, deletes, raw value access, or MCP configuration.
+  9. Execute the workflow.
+  10. Verify by names and contexts only.
+  11. Summarize without secrets.
 
   SAFETY RULES:
   - Never print, paste, or log secret values.
   - Never pass secret values as command-line arguments.
   - Never write secrets to persistent files without explicit approval.
   - Only report variable names, contexts, and sync status.
+  - Store only non-secret account/environment metadata in gitignored .1password/ files.
+  - If the authenticated account differs from the saved project binding, stop before writes and ask whether to switch accounts or rebind.
   - Require explicit confirmation before syncing to production, overwriting existing values, reading raw values, or configuring MCP.
   - Treat redaction as defense in depth, not permission to run unsafe commands.
 
@@ -48,14 +52,14 @@ tools:
       name: run_script
       description: >
         Run one of the bundled helper scripts (parse-dotenv.js,
-        compare-env-names.js, redact-output.sh) to process file data
+        compare-env-names.js, check-account-binding.js, redact-output.sh) to process file data
         without exposing secret values.
       parameters:
         type: object
         properties:
           script:
             type: string
-            enum: [parse-dotenv.js, compare-env-names.js, redact-output.sh]
+            enum: [parse-dotenv.js, compare-env-names.js, check-account-binding.js, redact-output.sh]
           args:
             type: array
             items:

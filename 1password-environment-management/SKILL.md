@@ -29,11 +29,13 @@ Follow this order every time:
 3. Detect 1Password MCP availability.
 4. If MCP is missing, recommend MCP setup before any value-based CLI fallback.
 5. Determine source, destination, provider, and context.
-6. Run metadata-only comparison first: names, contexts, and status only.
-7. Ask for explicit confirmation before production writes, overwrites, deletes, rotations, MCP configuration, or raw value access.
-8. Execute the chosen workflow.
-9. Verify by names, contexts, and status only.
-10. Summarize without secrets.
+6. Load `references/account-binding.md` and check project-local account binding
+   after MCP authentication, before any Environment write.
+7. Run metadata-only comparison first: names, contexts, and status only.
+8. Ask for explicit confirmation before production writes, overwrites, deletes, rotations, MCP configuration, or raw value access.
+9. Execute the chosen workflow.
+10. Verify by names, contexts, and status only.
+11. Summarize without secrets.
 
 ## MCP Detection
 
@@ -47,6 +49,19 @@ Check in this order:
 If MCP is missing, offer setup. Do not proceed to CLI fallback until setup is declined or unavailable.
 
 Load `references/mcp-setup.md` for setup details.
+
+## Account Binding Guard
+
+When MCP authentication succeeds, treat the returned `account_id` as the only
+valid account for the current session. Before imports, syncs, mounted files, or
+secret creation, load `references/account-binding.md` and compare that
+`account_id` against `.1password/environments.json` when it exists.
+
+If the saved account differs from the authenticated account, stop before writes
+and tell the user that authentication worked but the project is bound to a
+different 1Password account. Do not retry MCP operations in a loop. Ask the
+user to switch accounts or explicitly approve rebinding after metadata-only
+Environment discovery.
 
 ## Access Path Priority
 
@@ -148,6 +163,7 @@ Never read values without explicit approval. Pipe displayed command output throu
 |---|---|---|
 | `scripts/parse-dotenv.js` | Extract variable names from dotenv files | `node scripts/parse-dotenv.js .env .env.local` |
 | `scripts/compare-env-names.js` | Compare two name sets | `node scripts/compare-env-names.js source.json target.json` |
+| `scripts/check-account-binding.js` | Stop on saved-account mismatch before writes | `node scripts/check-account-binding.js --account-id ACCOUNT_ID --environment-name project/production` |
 | `scripts/redact-output.sh` | Redact common token patterns from output | `some-command | bash scripts/redact-output.sh` |
 
 ## Not Supported In MVP

@@ -28,7 +28,8 @@ Always call tools in this order:
 ```
 1. Call authenticate (no arguments)
 2. Extract account_id from the result content
-3. Pass account_id in every subsequent call
+3. Check project-local account binding before writes
+4. Pass account_id in every subsequent call
 ```
 
 The `account_id` returned by `authenticate` is **not** the same as the account
@@ -44,6 +45,11 @@ authenticate()
 list_environments(accountId: "XXXXXXXXXXXXXXXXXX")
   → [{ id: "...", name: "ovh-bits/production" }, ...]
 ```
+
+If `.1password/environments.json` exists and contains a different saved
+`account_id` for the target project/context, stop before calling write tools.
+Load `references/account-binding.md` for the exact guard and user-facing
+message.
 
 ## 3. Tool Reference
 
@@ -74,6 +80,11 @@ Approval prompts appear:
 
 **If MCP calls hang without returning:** a desktop approval is waiting. Check
 the 1Password app. Do not retry the call — wait for the user to approve.
+
+**If authentication succeeds but Environment authorization fails:** check for
+account mismatch before retrying. Repeated `authenticate` or `append_variables`
+attempts can produce multiple desktop prompts while still targeting the wrong
+account.
 
 ## 5. Empty Account Bootstrap
 
