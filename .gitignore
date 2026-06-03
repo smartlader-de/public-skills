@@ -1,0 +1,6 @@
+.DS_Store
+.gitignore
+.clavix/
+.worktrees/
+.gstack/
+1password-environment-management/docs/
